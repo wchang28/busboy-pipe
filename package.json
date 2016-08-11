@@ -1,0 +1,14 @@
+{
+  "name": "busboy-pipe",
+  "version": "1.0.0",
+  "description": "Busboy-based Stream Piping",
+  "main": "./js/index.js",
+  "typings": "./js/index.d.ts",
+  "scripts": {},
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "busboy": "^0.2.13",
+    "express": "^4.14.0"
+  }
+}
