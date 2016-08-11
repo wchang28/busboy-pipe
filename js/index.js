@@ -3,9 +3,11 @@ var Busboy = require('busboy');
 // 1. begin (EventParamsBase)
 // 2. end (EventParamsBase)
 // 3. total-files-count (FilesCountParams)
-// 4. file-data-rcvd (FilePipeParams)
-// 5. file-piped (FilePipeParams)
-function get(writeStreamFactory, eventEmitter) {
+// 4. file-begin (FilePipeParams)
+// 5. file-data-rcvd (FilePipeParams)
+// 6. file-end (FilePipeParams)
+function get(writeStreamFactory, options) {
+    var eventEmitter = (options && options.eventEmitter ? options.eventEmitter : null);
     return function (req, res, next) {
         var contentType = req.headers['content-type'];
         if (req.method.toLowerCase() === 'post' && contentType && contentType.match(/multipart\/form-data/)) {
@@ -17,8 +19,9 @@ function get(writeStreamFactory, eventEmitter) {
             req.body = {};
             var busboy = new Busboy({ headers: req.headers });
             busboy.on('file', function (fieldname, file, filename, encoding, mimetype) {
-                //console.log('File {' + fieldname + '}: filename: ' + filename + ', encoding: ' + encoding + ', mimetype: ' + mimetype);
                 var fileInfo = { filename: filename, encoding: encoding, mimetype: mimetype, length: 0 };
+                if (eventEmitter)
+                    eventEmitter.emit('file-begin', { req: req, fileInfo: fileInfo });
                 if (!req.body[fieldname])
                     req.body[fieldname] = [];
                 req.body[fieldname].push(fileInfo);
@@ -31,7 +34,7 @@ function get(writeStreamFactory, eventEmitter) {
                     if (err)
                         fileInfo.err = err;
                     if (eventEmitter)
-                        eventEmitter.emit('file-piped', { req: req, fileInfo: fileInfo });
+                        eventEmitter.emit('file-begin', { req: req, fileInfo: fileInfo });
                     num_files_piped_1++;
                     if (typeof num_files_total_1 === 'number' && num_files_total_1 === num_files_piped_1) {
                         if (eventEmitter)

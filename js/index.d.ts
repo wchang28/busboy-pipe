@@ -1,6 +1,9 @@
 import * as express from 'express';
 import * as stream from 'stream';
 import * as events from 'events';
+export interface Options {
+    eventEmitter?: events.EventEmitter;
+}
 export interface FileInfo {
     length: number;
     filename?: string;
@@ -28,4 +31,4 @@ export interface FilesCountParams extends EventParamsBase {
 export interface WriteStreamFactory {
     (params: FilePipeParams): WriteStreamInfo;
 }
-export declare function get(writeStreamFactory: WriteStreamFactory, eventEmitter?: events.EventEmitter): express.RequestHandler;
+export declare function get(writeStreamFactory: WriteStreamFactory, options?: Options): express.RequestHandler;

@@ -3,6 +3,10 @@ import * as express from 'express';
 import * as stream from 'stream';
 import * as events from 'events';
 
+export interface Options {
+	eventEmitter?: events.EventEmitter
+}
+
 export interface FileInfo {
 	length: number;
 
@@ -43,9 +47,11 @@ export interface WriteStreamFactory {
 // 1. begin (EventParamsBase)
 // 2. end (EventParamsBase)
 // 3. total-files-count (FilesCountParams)
-// 4. file-data-rcvd (FilePipeParams)
-// 5. file-piped (FilePipeParams)
-export function get(writeStreamFactory: WriteStreamFactory, eventEmitter?: events.EventEmitter) : express.RequestHandler {
+// 4. file-begin (FilePipeParams)
+// 5. file-data-rcvd (FilePipeParams)
+// 6. file-end (FilePipeParams)
+export function get(writeStreamFactory: WriteStreamFactory, options?: Options) : express.RequestHandler {
+	let eventEmitter = (options && options.eventEmitter ? options.eventEmitter : null);
 	return (req: express.Request, res:express.Response, next: express.NextFunction) => {
 		let contentType = req.headers['content-type'];
 		if (req.method.toLowerCase() === 'post' && contentType && contentType.match(/multipart\/form-data/)){
@@ -56,8 +62,8 @@ export function get(writeStreamFactory: WriteStreamFactory, eventEmitter?: event
 			req.body = {};
 			let busboy = new Busboy({ headers: req.headers });
 			busboy.on('file', (fieldname:string, file:stream.Readable, filename?:string, encoding?:string, mimetype?:string) => {
-				//console.log('File {' + fieldname + '}: filename: ' + filename + ', encoding: ' + encoding + ', mimetype: ' + mimetype);
 				let fileInfo:FileInfo = {filename: filename, encoding: encoding, mimetype: mimetype, length:0};
+				if (eventEmitter) eventEmitter.emit('file-begin', {req, fileInfo});
 				if (!req.body[fieldname]) req.body[fieldname] = [];
 				req.body[fieldname].push(fileInfo);
 				counter++;
@@ -66,7 +72,7 @@ export function get(writeStreamFactory: WriteStreamFactory, eventEmitter?: event
 				if (ret.streamInfo) fileInfo.streamInfo = ret.streamInfo;
 				let pipeDone = (err: any) => {
 					if (err) fileInfo.err = err;
-					if (eventEmitter) eventEmitter.emit('file-piped', {req, fileInfo});
+					if (eventEmitter) eventEmitter.emit('file-begin', {req, fileInfo});
 					num_files_piped++;
 					if (typeof num_files_total === 'number' && num_files_total === num_files_piped) {
 						if (eventEmitter) eventEmitter.emit('end', {req});
