@@ -28,6 +28,10 @@ export interface FilePipeParams extends EventParamsBase {
 export interface FilesCountParams extends EventParamsBase {
     count: number;
 }
+export interface FieldParams extends EventParamsBase {
+    fieldname: string;
+    val: string;
+}
 export interface WriteStreamFactory {
     (params: FilePipeParams): WriteStreamInfo;
 }

@@ -6,6 +6,7 @@ var Busboy = require('busboy');
 // 4. file-begin (FilePipeParams)
 // 5. file-data-rcvd (FilePipeParams)
 // 6. file-end (FilePipeParams)
+// 7. field (FieldParams)
 function get(writeStreamFactory, options) {
     var eventEmitter = (options && options.eventEmitter ? options.eventEmitter : null);
     return function (req, res, next) {
@@ -54,6 +55,8 @@ function get(writeStreamFactory, options) {
             });
             busboy.on('field', function (fieldname, val, fieldnameTruncated, valTruncated, encoding, mimetype) {
                 req.body[fieldname] = val;
+                if (eventEmitter)
+                    eventEmitter.emit('field', { req: req, fieldname: fieldname, val: val });
             });
             busboy.on('finish', function () {
                 num_files_total_1 = counter_1;

@@ -39,6 +39,12 @@ export interface FilesCountParams extends EventParamsBase {
 	count: number;
 }
 
+export interface FieldParams extends EventParamsBase {
+	fieldname: string;
+	val: string;
+}
+
+
 export interface WriteStreamFactory {
 	(params: FilePipeParams) : WriteStreamInfo
 }
@@ -50,6 +56,7 @@ export interface WriteStreamFactory {
 // 4. file-begin (FilePipeParams)
 // 5. file-data-rcvd (FilePipeParams)
 // 6. file-end (FilePipeParams)
+// 7. field (FieldParams)
 export function get(writeStreamFactory: WriteStreamFactory, options?: Options) : express.RequestHandler {
 	let eventEmitter = (options && options.eventEmitter ? options.eventEmitter : null);
 	return (req: express.Request, res:express.Response, next: express.NextFunction) => {
@@ -90,6 +97,7 @@ export function get(writeStreamFactory: WriteStreamFactory, options?: Options) :
 			});
 			busboy.on('field', (fieldname:string, val:string, fieldnameTruncated, valTruncated, encoding, mimetype) => {
 				req.body[fieldname] = val;
+				if (eventEmitter) eventEmitter.emit('field', {req, fieldname, val});
 			});
 			busboy.on('finish', () => {
 				num_files_total = counter;
