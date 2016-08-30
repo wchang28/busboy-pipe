@@ -1,6 +1,6 @@
 {
   "name": "busboy-pipe",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Busboy-based Stream Piping",
   "main": "./js/index.js",
   "typings": "./js/index.d.ts",
