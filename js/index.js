@@ -48,7 +48,11 @@ function get(writeStreamFactory, options) {
                     if (eventEmitter)
                         eventEmitter.emit('file-data-rcvd', { req: req, fileInfo: fileInfo });
                 });
+                file.on('end', function () {
+                    console.log('file on "end", total bytes=' + fileInfo.length);
+                });
                 writeStream.on('close', function () {
+                    console.log('writeStream on "clode", total bytes=' + fileInfo.length);
                     pipeDone(null);
                 });
                 file.on('error', pipeDone).pipe(writeStream).on('error', pipeDone);
