@@ -48,18 +48,16 @@ function get(writeStreamFactory, options) {
                     if (eventEmitter)
                         eventEmitter.emit('file-data-rcvd', { req: req, fileInfo: fileInfo });
                 });
-                file.on('end', function () {
-                    console.log('file on "end", total bytes=' + fileInfo.length);
-                    //if (fileInfo.length === 0) { // zero byte file
-                    //	writeStream.end();
-                    //}
+                /*
+                file.on('end', () => {
+                    //console.log('file on "end", total bytes=' +  fileInfo.length);
                 });
+                */
                 writeStream.on('close', function () {
-                    console.log('writeStream on "close", total bytes=' + fileInfo.length);
+                    //console.log('writeStream on "close", total bytes=' +  fileInfo.length);
                     pipeDone(null);
                 });
-                //file.on('error', pipeDone).pipe(writeStream).on('error', pipeDone);
-                file.pipe(writeStream);
+                file.on('error', pipeDone).pipe(writeStream).on('error', pipeDone);
             });
             busboy.on('field', function (fieldname, val, fieldnameTruncated, valTruncated, encoding, mimetype) {
                 req.body[fieldname] = val;

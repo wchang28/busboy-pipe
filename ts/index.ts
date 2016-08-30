@@ -90,18 +90,16 @@ export function get(writeStreamFactory: WriteStreamFactory, options?: Options) :
 					fileInfo.length += data.length;
 					if (eventEmitter) eventEmitter.emit('file-data-rcvd', {req, fileInfo});
 				});
+				/*
 				file.on('end', () => {
-					console.log('file on "end", total bytes=' +  fileInfo.length);
-					//if (fileInfo.length === 0) { // zero byte file
-					//	writeStream.end();
-					//}
+					//console.log('file on "end", total bytes=' +  fileInfo.length);
 				});
+				*/
 				writeStream.on('close', () => {
-					console.log('writeStream on "close", total bytes=' +  fileInfo.length);
+					//console.log('writeStream on "close", total bytes=' +  fileInfo.length);
 					pipeDone(null);
 				});
-				//file.on('error', pipeDone).pipe(writeStream).on('error', pipeDone);
-				file.pipe(writeStream);
+				file.on('error', pipeDone).pipe(writeStream).on('error', pipeDone);
 			});
 			busboy.on('field', (fieldname:string, val:string, fieldnameTruncated, valTruncated, encoding, mimetype) => {
 				req.body[fieldname] = val;
