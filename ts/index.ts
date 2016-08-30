@@ -92,12 +92,13 @@ export function get(writeStreamFactory: WriteStreamFactory, options?: Options) :
 				});
 				file.on('end', () => {
 					console.log('file on "end", total bytes=' +  fileInfo.length);
-					if (fileInfo.length === 0) { // zero byte file
-						writeStream.end();
-					}
+					//if (fileInfo.length === 0) { // zero byte file
+					//	writeStream.end();
+					//}
 				});
-				writeStream.on('close', () => {
-					console.log('writeStream on "clode", total bytes=' +  fileInfo.length);
+				//writeStream.on('close', () => {
+				writeStream.once('close', () => {
+					console.log('writeStream once "close", total bytes=' +  fileInfo.length);
 					pipeDone(null);
 				});
 				file.on('error', pipeDone).pipe(writeStream).on('error', pipeDone);
