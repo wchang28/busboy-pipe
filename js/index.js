@@ -50,6 +50,9 @@ function get(writeStreamFactory, options) {
                 });
                 file.on('end', function () {
                     console.log('file on "end", total bytes=' + fileInfo.length);
+                    if (fileInfo.length === 0) {
+                        writeStream.end();
+                    }
                 });
                 writeStream.on('close', function () {
                     console.log('writeStream on "clode", total bytes=' + fileInfo.length);

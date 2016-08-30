@@ -92,6 +92,9 @@ export function get(writeStreamFactory: WriteStreamFactory, options?: Options) :
 				});
 				file.on('end', () => {
 					console.log('file on "end", total bytes=' +  fileInfo.length);
+					if (fileInfo.length === 0) { // zero byte file
+						writeStream.end();
+					}
 				});
 				writeStream.on('close', () => {
 					console.log('writeStream on "clode", total bytes=' +  fileInfo.length);
