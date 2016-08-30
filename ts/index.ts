@@ -96,12 +96,12 @@ export function get(writeStreamFactory: WriteStreamFactory, options?: Options) :
 					//	writeStream.end();
 					//}
 				});
-				//writeStream.on('close', () => {
-				writeStream.once('close', () => {
-					console.log('writeStream once "close", total bytes=' +  fileInfo.length);
+				writeStream.on('close', () => {
+					console.log('writeStream on "close", total bytes=' +  fileInfo.length);
 					pipeDone(null);
 				});
-				file.on('error', pipeDone).pipe(writeStream).on('error', pipeDone);
+				//file.on('error', pipeDone).pipe(writeStream).on('error', pipeDone);
+				file.pipe(writeStream);
 			});
 			busboy.on('field', (fieldname:string, val:string, fieldnameTruncated, valTruncated, encoding, mimetype) => {
 				req.body[fieldname] = val;

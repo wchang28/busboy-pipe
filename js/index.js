@@ -54,12 +54,12 @@ function get(writeStreamFactory, options) {
                     //	writeStream.end();
                     //}
                 });
-                //writeStream.on('close', () => {
-                writeStream.once('close', function () {
-                    console.log('writeStream once "close", total bytes=' + fileInfo.length);
+                writeStream.on('close', function () {
+                    console.log('writeStream on "close", total bytes=' + fileInfo.length);
                     pipeDone(null);
                 });
-                file.on('error', pipeDone).pipe(writeStream).on('error', pipeDone);
+                //file.on('error', pipeDone).pipe(writeStream).on('error', pipeDone);
+                file.pipe(writeStream);
             });
             busboy.on('field', function (fieldname, val, fieldnameTruncated, valTruncated, encoding, mimetype) {
                 req.body[fieldname] = val;
