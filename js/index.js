@@ -14,7 +14,7 @@ function get(writeStreamFactory, options) {
         if (req.method.toLowerCase() === 'post' && contentType && contentType.match(/multipart\/form-data/)) {
             if (eventEmitter)
                 eventEmitter.emit('begin', { req: req });
-            var num_files_piped_1 = 0;
+            var num_files_processed_1 = 0;
             var num_files_total_1 = null;
             var counter_1 = 0;
             req.body = {};
@@ -31,13 +31,13 @@ function get(writeStreamFactory, options) {
                 var writeStream = ret.stream;
                 if (ret.streamInfo)
                     fileInfo.streamInfo = ret.streamInfo;
-                var pipeDone = function (err) {
+                var fileDone = function (err) {
                     if (err)
                         fileInfo.err = err;
                     if (eventEmitter)
-                        eventEmitter.emit('file-begin', { req: req, fileInfo: fileInfo });
-                    num_files_piped_1++;
-                    if (typeof num_files_total_1 === 'number' && num_files_total_1 === num_files_piped_1) {
+                        eventEmitter.emit('file-end', { req: req, fileInfo: fileInfo });
+                    num_files_processed_1++;
+                    if (typeof num_files_total_1 === 'number' && num_files_total_1 === num_files_processed_1) {
                         if (eventEmitter)
                             eventEmitter.emit('end', { req: req });
                         next();
@@ -48,16 +48,19 @@ function get(writeStreamFactory, options) {
                     if (eventEmitter)
                         eventEmitter.emit('file-data-rcvd', { req: req, fileInfo: fileInfo });
                 });
-                /*
-                file.on('end', () => {
-                    //console.log('file on "end", total bytes=' +  fileInfo.length);
-                });
-                */
-                writeStream.on('close', function () {
-                    //console.log('writeStream on "close", total bytes=' +  fileInfo.length);
-                    pipeDone(null);
-                });
-                file.on('error', pipeDone).pipe(writeStream).on('error', pipeDone);
+                if (writeStream) {
+                    writeStream.on('close', function () {
+                        //console.log('writeStream on "close", total bytes=' +  fileInfo.length);
+                        fileDone(null);
+                    });
+                    file.on('error', fileDone).pipe(writeStream).on('error', fileDone);
+                }
+                else {
+                    file.on('end', function () {
+                        //console.log('file on "end", total bytes=' +  fileInfo.length);
+                        fileDone(null);
+                    });
+                }
             });
             busboy.on('field', function (fieldname, val, fieldnameTruncated, valTruncated, encoding, mimetype) {
                 req.body[fieldname] = val;

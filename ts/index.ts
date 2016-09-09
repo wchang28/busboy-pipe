@@ -63,7 +63,7 @@ export function get(writeStreamFactory: WriteStreamFactory, options?: Options) :
 		let contentType = req.headers['content-type'];
 		if (req.method.toLowerCase() === 'post' && contentType && contentType.match(/multipart\/form-data/)){
 			if (eventEmitter) eventEmitter.emit('begin', {req});
-			let num_files_piped = 0;
+			let num_files_processed = 0;
 			let num_files_total:number = null;
 			let counter:number = 0;
 			req.body = {};
@@ -77,11 +77,11 @@ export function get(writeStreamFactory: WriteStreamFactory, options?: Options) :
 				let ret = writeStreamFactory({req, fileInfo});
 				let writeStream = ret.stream;
 				if (ret.streamInfo) fileInfo.streamInfo = ret.streamInfo;
-				let pipeDone = (err: any) => {
+				let fileDone = (err: any) => {
 					if (err) fileInfo.err = err;
-					if (eventEmitter) eventEmitter.emit('file-begin', {req, fileInfo});
-					num_files_piped++;
-					if (typeof num_files_total === 'number' && num_files_total === num_files_piped) {
+					if (eventEmitter) eventEmitter.emit('file-end', {req, fileInfo});
+					num_files_processed++;
+					if (typeof num_files_total === 'number' && num_files_total === num_files_processed) {
 						if (eventEmitter) eventEmitter.emit('end', {req});
 						next();
 					}					
@@ -90,16 +90,18 @@ export function get(writeStreamFactory: WriteStreamFactory, options?: Options) :
 					fileInfo.length += data.length;
 					if (eventEmitter) eventEmitter.emit('file-data-rcvd', {req, fileInfo});
 				});
-				/*
-				file.on('end', () => {
-					//console.log('file on "end", total bytes=' +  fileInfo.length);
-				});
-				*/
-				writeStream.on('close', () => {
-					//console.log('writeStream on "close", total bytes=' +  fileInfo.length);
-					pipeDone(null);
-				});
-				file.on('error', pipeDone).pipe(writeStream).on('error', pipeDone);
+				if (writeStream) {
+					writeStream.on('close', () => {
+						//console.log('writeStream on "close", total bytes=' +  fileInfo.length);
+						fileDone(null);
+					});
+					file.on('error', fileDone).pipe(writeStream).on('error', fileDone);
+				} else {	// no write stream
+					file.on('end', () => {
+						//console.log('file on "end", total bytes=' +  fileInfo.length);
+						fileDone(null);
+					});
+				}
 			});
 			busboy.on('field', (fieldname:string, val:string, fieldnameTruncated, valTruncated, encoding, mimetype) => {
 				req.body[fieldname] = val;
