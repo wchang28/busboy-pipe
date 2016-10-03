@@ -1,3 +1,4 @@
+"use strict";
 var Busboy = require('busboy');
 // supports the following events:
 // 1. begin (EventParamsBase)

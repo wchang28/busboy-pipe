@@ -1,3 +1,5 @@
+/// <reference types="node" />
+/// <reference types="express" />
 import * as express from 'express';
 import * as stream from 'stream';
 import * as events from 'events';
