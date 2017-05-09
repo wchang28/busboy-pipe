@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var Busboy = require('busboy');
 // supports the following events:
 // 1. begin (EventParamsBase)
